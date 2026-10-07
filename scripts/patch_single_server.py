@@ -933,32 +933,34 @@ public class EntryActivity extends SampActivity {
             SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
             for (ManifestFile mf : currentManifest.files) {
-                File candidateFile = new File(importDir, mf.fileName);
-                if (!candidateFile.exists()) {
-                    candidateFile = new File(importDir, mf.id + ".zip");
+                File candidate = new File(importDir, mf.fileName);
+                if (!candidate.exists()) {
+                    candidate = new File(importDir, mf.id + ".zip");
                 }
 
-                if (candidateFile.exists()) {
+                if (candidate.exists()) {
+                    final File fileToProcess = candidate;
+                    final String fileNameToDisplay = candidate.getName();
                     mainHandler.post(() -> {
                         if (statusSubtitle != null) {
-                            statusSubtitle.setText("Memverifikasi SHA-256: " + candidateFile.getName());
+                            statusSubtitle.setText("Memverifikasi SHA-256: " + fileNameToDisplay);
                         }
                     });
 
-                    if (candidateFile.length() != mf.size) {
-                        mismatchList.add(candidateFile.getName() + " (ukuran tidak cocok)");
+                    if (fileToProcess.length() != mf.size) {
+                        mismatchList.add(fileNameToDisplay + " (ukuran tidak cocok)");
                         continue;
                     }
 
-                    String sha = calculateSha256(candidateFile);
+                    String sha = calculateSha256(fileToProcess);
                     if (sha.equalsIgnoreCase(mf.sha256)) {
                         mainHandler.post(() -> {
                             if (statusSubtitle != null) {
-                                statusSubtitle.setText("Mengimpor dan mengekstrak: " + candidateFile.getName());
+                                statusSubtitle.setText("Mengimpor dan mengekstrak: " + fileNameToDisplay);
                             }
                         });
                         File destFile = new File(downloadDir, mf.fileName);
-                        moveOrCopyFile(candidateFile, destFile);
+                        moveOrCopyFile(fileToProcess, destFile);
                         try {
                             extractZip(destFile, targetDir);
                             prefs.edit().putString(PREF_INSTALLED_SHA_PREFIX + mf.id, mf.sha256).apply();
@@ -967,7 +969,7 @@ public class EntryActivity extends SampActivity {
                             Log.e(TAG, "Ekstraksi berkas impor gagal", e);
                         }
                     } else {
-                        mismatchList.add(candidateFile.getName() + " (checksum berbeda)");
+                        mismatchList.add(fileNameToDisplay + " (checksum berbeda)");
                     }
                 }
             }
