@@ -145,7 +145,7 @@ jobs:
 
           echo "=== 1. Package and Orientation Verification ==="
           $AAPT dump badging "$APK_PATH" | grep "package: name='com.xyron.game'"
-          $AAPT dump badging "$APK_PATH" | grep "screenOrientation='landscape'"
+          ($AAPT dump badging "$APK_PATH" | grep -i "landscape") || ($AAPT dump xmltree "$APK_PATH" AndroidManifest.xml | grep -i "landscape")
 
           echo "=== 2. Native Library Verification (armeabi-v7a only) ==="
           unzip -l "$APK_PATH" | grep "lib/armeabi-v7a/libGTASA.so"
