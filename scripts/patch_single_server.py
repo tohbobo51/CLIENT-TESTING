@@ -1080,7 +1080,7 @@ public class EntryActivity extends SampActivity {
     private String fetchManifestJson() {
         for (String url : MANIFEST_URLS) {
             String json = downloadStringWithTimeout(url, 8000);
-            if (json != null && !json.trim().isEmpty() && json.contains("\"files\"")) {
+            if (json != null && !json.trim().isEmpty() && json.contains("files")) {
                 Log.i(TAG, "Successfully fetched manifest from: " + url);
                 return json;
             }
@@ -1095,7 +1095,7 @@ public class EntryActivity extends SampActivity {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
+                sb.append(line).append(System.lineSeparator());
             }
             Log.i(TAG, "Loaded fallback manifest from assets/data-manifest.json");
             return sb.toString();

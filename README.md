@@ -98,6 +98,21 @@ Bagi pemain dengan kuota terbatas atau yang ingin menyalin data secara offline:
 
 ---
 
+## 📱 Panduan Instalasi & Mengatasi Masalah "Aplikasi Tidak Terpasang"
+
+Jika Anda mengalami kendala saat menginstal APK (*App not installed* / *Aplikasi tidak terpasang*):
+
+1. **Copot Pemasangan (Uninstall) Versi Lama Terlebih Dahulu (Wajib):**
+   - Jika di perangkat Anda sebelumnya sudah terinstal versi rilis terdahulu (seperti  atau APK dari build sebelumnya), Android akan menolak pemasangan pembaruan secara otomatis (*INSTALL_FAILED_UPDATE_INCOMPATIBLE*) karena perbedaan tanda tangan digital (*signature key*).
+   - **Solusi:** Hapus/Uninstall aplikasi Vice Side yang ada di HP Anda terlebih dahulu, kemudian pasang APK yang baru.
+2. **Peringatan Google Play Protect:**
+   - Karena APK didistribusikan secara mandiri (bukan lewat Google Play Store), Play Protect mungkin akan menampilkan peringatan keamanan saat instalasi.
+   - **Solusi:** Ketuk **Detail selengkapnya (More details)** lalu pilih **Tetap instal (Install anyway)**.
+3. **Kompatibilitas Perangkat (Arsitektur 32-bit ):**
+   - Mesin GTA San Andreas Mobile dan SA-MP dibangun menggunakan library native 32-bit (). Perangkat flagship generasi terbaru yang hanya mendukung 64-bit murni (*64-bit-only*, seperti Google Pixel 7/8/9) tidak dapat menginstal aplikasi 32-bit.
+
+---
+
 ## 🛠️ GitHub Actions Secrets (Keystore & Release)
 
 Untuk menghasilkan APK rilis resmi yang tertandatangani (*signed*), atur Secrets berikut pada menu **Settings > Secrets and variables > Actions**:

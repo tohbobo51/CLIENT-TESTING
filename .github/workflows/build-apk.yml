@@ -82,6 +82,12 @@ jobs:
             echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD || secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          elif [ -f "keystore/release.keystore" ]; then
+            echo "[*] Using permanent repository release keystore..."
+            cp "keystore/release.keystore" "$KEYSTORE_FILE_PATH"
+            echo "KEYSTORE_PASSWORD=vicesidepass" >> $GITHUB_ENV
+            echo "KEY_ALIAS=viceside" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=vicesidepass" >> $GITHUB_ENV
           else
             echo "[*] Generating fallback release keystore..."
             keytool -genkeypair -v -keystore "$KEYSTORE_FILE_PATH" -alias viceside \
