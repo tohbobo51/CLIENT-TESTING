@@ -143,6 +143,15 @@ def patch_splash_layout(root: Path) -> None:
     android:layout_height="match_parent"
     android:background="@drawable/bg_red">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/gpu"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -232,6 +241,18 @@ def patch_splash_layout(root: Path) -> None:
             android:indeterminate="false"
             android:visibility="visible"
             app:indicatorColor="#FBBF23"
+            app:trackColor="#20FFFFFF"
+            app:trackCornerRadius="999dp"
+            app:trackThickness="12dp" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressBarBlue"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginTop="8dp"
+            android:indeterminate="false"
+            android:visibility="gone"
+            app:indicatorColor="#38BDF8"
             app:trackColor="#20FFFFFF"
             app:trackCornerRadius="999dp"
             app:trackThickness="12dp" />
