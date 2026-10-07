@@ -108,8 +108,9 @@ def patch_samp_orientation(root: Path) -> None:
     samp_path = root / "app/src/main/java/com/xyron/game/main/SAMP.java"
     if samp_path.exists():
         code = samp_path.read_text(encoding="utf-8")
-        if "import android.content.pm.ActivityInfo;" not in code:
-            code = "import android.content.pm.ActivityInfo;\n" + code
+        pkg = "package com.xyron.game.main;\n"
+        if "import android.content.pm.ActivityInfo;" not in code and pkg in code:
+            code = code.replace(pkg, pkg + "import android.content.pm.ActivityInfo;\n", 1)
         
         target = "    public void onCreate(Bundle savedInstanceState) {\n        Log.i(TAG, \"**** onCreate\");"
         replacement = (
