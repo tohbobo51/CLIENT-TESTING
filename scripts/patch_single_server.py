@@ -104,6 +104,14 @@ def patch_root_gradle(root: Path) -> None:
         root_gradle.write_text(gradle_text, encoding="utf-8")
         print("[*] Replaced jcenter() with mavenCentral() in root build.gradle")
 
+def patch_gradle_properties(root: Path) -> None:
+    prop_path = root / "gradle.properties"
+    if prop_path.exists():
+        text = prop_path.read_text(encoding="utf-8")
+        text = re.sub(r"org\.gradle\.jvmargs\s*=\s*[^\r\n]+", "org.gradle.jvmargs=-Xmx8192m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8", text)
+        prop_path.write_text(text, encoding="utf-8")
+        print("[*] Configured gradle.properties JVM args: -Xmx8192m")
+
 def patch_samp_orientation(root: Path) -> None:
     samp_path = root / "app/src/main/java/com/xyron/game/main/SAMP.java"
     if samp_path.exists():
@@ -479,38 +487,39 @@ def patch_app_gradle(root: Path) -> None:
         app_text
     )
 
-    # androidResources { noCompress 'zip' }, sourceSets, and signingConfigs
-    if "noCompress 'zip'" not in app_text:
+    if "noCompress" not in app_text:
         insert_pos = app_text.find("buildTypes {")
         if insert_pos != -1:
             resource_block = (
                 "    androidResources {\n"
+                "        noCompress += ['zip']\n"
+                "    }\n"
+                "    aaptOptions {\n"
                 "        noCompress 'zip'\n"
                 "    }\n\n"
                 "    sourceSets {\n"
                 "        main {\n"
-                "            assets.srcDirs += ['game-data', '../game-data']\n"
+                "            assets.srcDirs += ['../game-data']\n"
                 "        }\n"
                 "    }\n\n"
                 "    signingConfigs {\n"
                 "        release {\n"
                 "            storeFile file(System.getenv('KEYSTORE_PATH') ?: (project.findProperty('KEYSTORE_FILE') ?: (file('release.keystore').exists() ? 'release.keystore' : '../release.keystore')))\n"
-                "            storePassword System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: '')\n"
-                "            keyAlias System.getenv('KEY_ALIAS') ?: (project.findProperty('KEY_ALIAS') ?: '')\n"
-                "            keyPassword System.getenv('KEY_PASSWORD') ?: (System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEY_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: '')))\n"
+                "            storePassword (System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: ''))\n"
+                "            keyAlias (System.getenv('KEY_ALIAS') ?: (project.findProperty('KEY_ALIAS') ?: ''))\n"
+                "            keyPassword (System.getenv('KEY_PASSWORD') ?: (System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEY_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: ''))))\n"
                 "        }\n"
                 "    }\n\n"
             )
             app_text = app_text[:insert_pos] + resource_block + app_text[insert_pos:]
 
-    # Enable signing in release buildType
     app_text = re.sub(
         r"//signingConfig\s+signingConfigs\.release",
         "signingConfig signingConfigs.release",
         app_text
     )
     app_gradle.write_text(app_text, encoding="utf-8")
-    print("[*] Configured app/build.gradle (signingConfigs.release, noCompress 'zip', game-data sourceSet, dynamic versionCode)")
+    print("[*] Configured app/build.gradle (signingConfigs.release, noCompress, game-data sourceSet, dynamic versionCode)")
 
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "client").resolve()
@@ -524,6 +533,7 @@ def main() -> None:
     patch_servers_fragment(root)
     patch_manifest(root)
     patch_root_gradle(root)
+    patch_gradle_properties(root)
     patch_samp_orientation(root)
     patch_entry_activity(root)
     patch_app_gradle(root)
