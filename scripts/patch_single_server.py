@@ -398,10 +398,12 @@ public class EntryActivity extends SampActivity {
     private static final String PREF_MANIFEST_VERSION = "manifest_version";
     private static final String PREF_INSTALLED_SHA_PREFIX = "installed_sha256_";
 
-    public static final String PRIMARY_MANIFEST_URL =
-            "https://github.com/tohbobo51/samp-game-data/releases/latest/download/data-manifest.json";
-    public static final String FALLBACK_MANIFEST_URL =
-            "https://raw.githubusercontent.com/tohbobo51/samp-game-data/main/data-manifest.json";
+    public static final String[] MANIFEST_URLS = new String[] {
+            "https://raw.githubusercontent.com/tohbobo51/CLIENT-TESTING/main/data-manifest.json",
+            "https://raw.githubusercontent.com/tohbobo51/samp-game-data/main/data-manifest.json",
+            "https://github.com/tohbobo51/samp-game-data/releases/download/v1.0/data-manifest.json",
+            "https://github.com/tohbobo51/samp-game-data/releases/latest/download/data-manifest.json"
+    };
     public static final String MANUAL_IMPORT_PATH =
             "/storage/emulated/0/Documents/SampMobile/";
 
@@ -1076,12 +1078,31 @@ public class EntryActivity extends SampActivity {
     }
 
     private String fetchManifestJson() {
-        String json = downloadStringWithTimeout(PRIMARY_MANIFEST_URL, 15000);
-        if (json != null && !json.trim().isEmpty()) {
-            return json;
+        for (String url : MANIFEST_URLS) {
+            String json = downloadStringWithTimeout(url, 8000);
+            if (json != null && !json.trim().isEmpty() && json.contains("\"files\"")) {
+                Log.i(TAG, "Successfully fetched manifest from: " + url);
+                return json;
+            }
         }
-        Log.w(TAG, "Primary manifest URL failed, trying fallback URL: " + FALLBACK_MANIFEST_URL);
-        return downloadStringWithTimeout(FALLBACK_MANIFEST_URL, 15000);
+        Log.w(TAG, "All remote manifest URLs failed, falling back to bundled assets/data-manifest.json");
+        return loadBundledManifestJson();
+    }
+
+    private String loadBundledManifestJson() {
+        try (InputStream is = getAssets().open("data-manifest.json");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+            Log.i(TAG, "Loaded fallback manifest from assets/data-manifest.json");
+            return sb.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to read bundled assets/data-manifest.json", e);
+            return null;
+        }
     }
 
     private String downloadStringWithTimeout(String urlString, int timeout) {
@@ -1355,6 +1376,15 @@ def patch_app_gradle(root: Path) -> None:
     app_gradle.write_text(app_text, encoding="utf-8")
     print("[*] Configured app/build.gradle (signingConfigs.release, dynamic versionCode, no bundled game data)")
 
+def patch_bundled_manifest(root: Path) -> None:
+    assets_dir = root / "app/src/main/assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    manifest_dest = assets_dir / "data-manifest.json"
+    repo_manifest = Path("data-manifest.json")
+    if repo_manifest.exists():
+        manifest_dest.write_text(repo_manifest.read_text(encoding="utf-8"), encoding="utf-8")
+        print("[*] Bundled default data-manifest.json into assets/")
+
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "client").resolve()
     print(f"Applying patch_single_server to: {root}")
@@ -1372,6 +1402,7 @@ def main() -> None:
     patch_splash_layout(root)
     patch_entry_activity(root)
     patch_app_gradle(root)
+    patch_bundled_manifest(root)
 
     print("[SUCCESS] All single-server, CEF, client-side downloader, and importer patches applied successfully.")
 
