@@ -92,9 +92,8 @@ def patch_manifest(root: Path) -> None:
     manifest_path = root / "app/src/main/AndroidManifest.xml"
     if manifest_path.exists():
         manifest = manifest_path.read_text(encoding="utf-8")
-        manifest = manifest.replace('android:installLocation="auto"', 'android:installLocation="internalOnly"')
-        manifest_path.write_text(manifest, encoding="utf-8")
-        print("[*] Updated AndroidManifest.xml: installLocation='internalOnly'")
+        # Keep installLocation="auto" to allow installation from any storage
+        print("[*] Checked AndroidManifest.xml: preserved installLocation='auto'")
 
 def patch_root_gradle(root: Path) -> None:
     root_gradle = root / "build.gradle"
