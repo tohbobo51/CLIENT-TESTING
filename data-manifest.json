@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "title": "Vice Side Data v1",
+  "files": [
+    {
+      "id": "crmp",
+      "url": "https://github.com/tohbobo51/samp-game-data/releases/download/v1.0/CRMP.zip",
+      "size": 1074673867,
+      "sha256": "4854d4176df5a8da3da17bf4aaf58e374c395ab0e1cb68be0a83ab0f6889c7ec",
+      "extract_to": "."
+    }
+  ]
+}

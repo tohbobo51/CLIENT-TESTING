@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 patch_single_server.py
-Applies Vice Side Roleplay single-server locking, local game-data extraction setup,
-orientation locking, and signing configuration to the client repository.
+Applies Vice Side Roleplay single-server locking, client-side manifest-based data download,
+manual import from Documents/SampMobile/, orientation locking, and signing configuration.
 """
 
 from pathlib import Path
@@ -130,6 +130,179 @@ def patch_samp_orientation(root: Path) -> None:
         samp_path.write_text(code, encoding="utf-8")
         print("[*] Added landscape lock to SAMP.java onCreate")
 
+def patch_splash_layout(root: Path) -> None:
+    layout_path = root / "app/src/main/res/layout/activity_splash.xml"
+    if not layout_path.exists():
+        return
+
+    splash_layout_content = """<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_splash_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_red">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/home_overlay" />
+
+    <LinearLayout
+        android:layout_width="600dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/launcher_hero_panel"
+        android:elevation="12dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/launcher_logo_frame"
+                android:padding="12dp">
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/news_rp_logo" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/home_news_badge"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:text="Pembaruan Data Game"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/montserrat_black"
+                    android:text="Menyiapkan Vice Side Roleplay..."
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/statusSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/montserrat_medium"
+                    android:text="Memeriksa pembaruan data game..."
+                    android:textColor="#D7CDE1"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginTop="16dp"
+            android:indeterminate="false"
+            android:visibility="visible"
+            app:indicatorColor="#FBBF23"
+            app:trackColor="#20FFFFFF"
+            app:trackCornerRadius="999dp"
+            app:trackThickness="12dp" />
+
+        <TextView
+            android:id="@+id/statusInstructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:gravity="center"
+            android:text="Impor manual ZArchiver: Salin/ekstrak CRMP.zip ke /storage/emulated/0/Documents/SampMobile/"
+            android:textColor="#B0A4C0"
+            android:textSize="10sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/home_action_text_button"
+                android:fontFamily="@font/montserrat_bold"
+                android:gravity="center"
+                android:text="Batal / Jeda"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/btnImport"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1.3"
+                android:background="@drawable/launcher_cta_gold"
+                android:fontFamily="@font/montserrat_black"
+                android:gravity="center"
+                android:text="Impor dari Folder"
+                android:textAllCaps="true"
+                android:textColor="#24120A"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/btnCopyPath"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/home_action_text_button"
+                android:fontFamily="@font/montserrat_bold"
+                android:gravity="center"
+                android:text="Salin Jalur"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+"""
+    layout_path.write_text(splash_layout_content, encoding="utf-8")
+    print("[*] Replaced activity_splash.xml with updater & manual import layout")
+
 def patch_entry_activity(root: Path) -> None:
     entry_path = root / "app/src/main/java/com/xyron/game/launcher/EntryActivity.java"
     if not entry_path.exists():
@@ -138,11 +311,12 @@ def patch_entry_activity(root: Path) -> None:
     new_content = """package com.xyron.game.launcher;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -152,6 +326,20 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.downloader.Error;
+import com.downloader.OnCancelListener;
+import com.downloader.OnDownloadListener;
+import com.downloader.OnPauseListener;
+import com.downloader.OnProgressListener;
+import com.downloader.OnStartOrResumeListener;
+import com.downloader.PRDownloader;
+import com.downloader.PRDownloaderConfig;
+import com.downloader.Progress;
+import com.downloader.database.DownloadModel;
+import com.downloader.internal.ComponentHolder;
+import com.downloader.utils.Utils;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.xyron.game.R;
 import com.xyron.game.launcher.util.ButtonAnimator;
@@ -159,14 +347,25 @@ import com.xyron.game.launcher.util.ConfigValidator;
 import com.xyron.game.launcher.util.GameDataVerifier;
 import com.xyron.game.launcher.util.ServerConfigManager;
 import org.ini4j.Wini;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -174,14 +373,76 @@ public class EntryActivity extends SampActivity {
     public static final String EXTRA_INITIAL_TAB = "initial_tab";
     public static final String EXTRA_FORCE_UPDATE_DATA = "force_update_data";
     private static final String EXTRA_NICKNAME = "nickname";
-    private static final String TAG = "EntryActivity";
+    private static final String TAG = "ViceSide-Entry";
     private static final String PREF_NAME = "viceside_data";
-    private static final String PREF_EXTRACTED = "extracted_v1";
+    private static final String PREF_MANIFEST_VERSION = "manifest_version";
+    private static final String PREF_INSTALLED_SHA_PREFIX = "installed_sha256_";
+
+    public static final String PRIMARY_MANIFEST_URL =
+            "https://github.com/tohbobo51/samp-game-data/releases/latest/download/data-manifest.json";
+    public static final String FALLBACK_MANIFEST_URL =
+            "https://raw.githubusercontent.com/tohbobo51/samp-game-data/main/data-manifest.json";
+    public static final String MANUAL_IMPORT_PATH =
+            "/storage/emulated/0/Documents/SampMobile/";
+
+    public static class ManifestFile {
+        public final String id;
+        public final String url;
+        public final long size;
+        public final String sha256;
+        public final String extractTo;
+        public final String fileName;
+
+        public ManifestFile(String id, String url, long size, String sha256, String extractTo) {
+            this.id = id;
+            this.url = url;
+            this.size = size;
+            this.sha256 = sha256;
+            this.extractTo = extractTo;
+            String computedName = null;
+            try {
+                String path = new URL(url).getPath();
+                if (path != null && path.contains("/")) {
+                    computedName = path.substring(path.lastIndexOf('/') + 1);
+                }
+            } catch (Exception ignored) {}
+            if (TextUtils.isEmpty(computedName)) {
+                computedName = id + ".zip";
+            }
+            this.fileName = computedName;
+        }
+    }
+
+    public static class ManifestData {
+        public final int version;
+        public final String title;
+        public final List<ManifestFile> files = new ArrayList<>();
+
+        public ManifestData(int version, String title) {
+            this.version = version;
+            this.title = title;
+        }
+    }
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private TextView statusTitle;
+    private TextView statusSubtitle;
+    private TextView statusInstructions;
+    private TextView btnCancel;
+    private TextView btnImport;
+    private TextView btnCopyPath;
     private LinearProgressIndicator progressBar;
-    private boolean isExtracting = false;
+
+    private ManifestData currentManifest;
+    private final List<ManifestFile> pendingFilesToDownload = new ArrayList<>();
+    private int activeDownloadId = -1;
+    private boolean isPaused = false;
+    private boolean isFlowBusy = false;
+
+    private long lastSpeedTime = 0;
+    private long lastSpeedBytes = 0;
+    private String lastSpeedText = "0 KB/s";
+    private String lastEtaText = "--:--";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,28 +453,25 @@ public class EntryActivity extends SampActivity {
         ServerConfigManager.ensureSelectedServer(this);
         applyIncomingConnection(getIntent());
 
-        boolean forceUpdate = getIntent() != null
-                && getIntent().getBooleanExtra(EXTRA_FORCE_UPDATE_DATA, false);
+        PRDownloader.initialize(getApplicationContext(),
+                PRDownloaderConfig.newBuilder()
+                        .setDatabaseEnabled(true)
+                        .setReadTimeout(30000)
+                        .setConnectTimeout(30000)
+                        .build());
 
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        boolean alreadyExtracted = !forceUpdate && prefs.getBoolean(PREF_EXTRACTED, false)
-                && GameDataVerifier.hasRequiredGameData(this);
-
-        if (alreadyExtracted) {
-            launchMainActivity();
-            return;
-        }
-
-        setupExtractionUi();
-        startDataExtraction();
+        setupUi();
+        startUpdateFlow();
     }
 
-    private void setupExtractionUi() {
+    private void setupUi() {
         setContentView(R.layout.activity_splash);
         statusTitle = findViewById(R.id.textView2);
-        if (statusTitle != null) {
-            statusTitle.setText("Menyiapkan Vice Side Roleplay...");
-        }
+        statusSubtitle = findViewById(R.id.statusSubtitle);
+        statusInstructions = findViewById(R.id.statusInstructions);
+        btnCancel = findViewById(R.id.btnCancel);
+        btnImport = findViewById(R.id.btnImport);
+        btnCopyPath = findViewById(R.id.btnCopyPath);
 
         progressBar = findViewById(R.id.progressBar);
         if (progressBar == null) {
@@ -221,91 +479,518 @@ public class EntryActivity extends SampActivity {
         }
         if (progressBar != null) {
             progressBar.setVisibility(View.VISIBLE);
-            progressBar.setIndeterminate(false);
-            progressBar.setProgress(0);
+            progressBar.setIndeterminate(true);
+        }
+
+        if (statusTitle != null) {
+            statusTitle.setText("Menyiapkan Vice Side Roleplay...");
+        }
+        if (statusSubtitle != null) {
+            statusSubtitle.setText("Memeriksa status data game...");
+        }
+        if (statusInstructions != null) {
+            statusInstructions.setText("Jalur impor manual: " + MANUAL_IMPORT_PATH);
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnTouchListener(new ButtonAnimator(this, btnCancel));
+            btnCancel.setOnClickListener(v -> onCancelOrPauseClicked());
+        }
+        if (btnImport != null) {
+            btnImport.setOnTouchListener(new ButtonAnimator(this, btnImport));
+            btnImport.setOnClickListener(v -> onManualImportClicked());
+        }
+        if (btnCopyPath != null) {
+            btnCopyPath.setOnTouchListener(new ButtonAnimator(this, btnCopyPath));
+            btnCopyPath.setOnClickListener(v -> onCopyPathClicked());
         }
     }
 
-    private void startDataExtraction() {
-        if (isExtracting) return;
-        isExtracting = true;
+    private void startUpdateFlow() {
+        if (isFlowBusy) return;
+        isFlowBusy = true;
 
         new Thread(() -> {
             try {
-                File targetDir = getExternalFilesDir(null);
-                if (targetDir == null) {
-                    throw new IOException("Penyimpanan perangkat tidak dapat diakses.");
-                }
+                boolean forceUpdate = getIntent() != null
+                        && getIntent().getBooleanExtra(EXTRA_FORCE_UPDATE_DATA, false);
 
-                List<String> zipFiles = findGameDataZipAssets();
-                if (zipFiles.isEmpty()) {
-                    Log.w(TAG, "No game_data zip found in assets, checking existing data");
-                    if (GameDataVerifier.hasRequiredGameData(this)) {
-                        markExtractedAndProceed();
+                mainHandler.post(() -> {
+                    if (statusSubtitle != null) statusSubtitle.setText("Mengambil manifest rilis data...");
+                    if (progressBar != null) progressBar.setIndeterminate(true);
+                });
+
+                String manifestJson = fetchManifestJson();
+                if (manifestJson == null) {
+                    SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                    if (!forceUpdate && prefs.getInt(PREF_MANIFEST_VERSION, -1) > 0
+                            && GameDataVerifier.hasRequiredGameData(this)) {
+                        Log.i(TAG, "Offline mode: manifest fetch failed but game data verified.");
+                        markReadyAndProceed();
                         return;
                     }
-                    throw new IOException("Arsip data game tidak ditemukan di dalam APK.");
+                    throw new IOException("Koneksi internet gagal dan data belum terpasang.");
                 }
 
-                int totalZips = zipFiles.size();
-                for (int i = 0; i < totalZips; i++) {
-                    String zipPath = zipFiles.get(i);
-                    extractZipAsset(zipPath, targetDir, i, totalZips);
+                ManifestData manifest = parseManifest(manifestJson);
+                if (manifest == null || manifest.files.isEmpty()) {
+                    throw new IOException("Format manifest data tidak valid.");
+                }
+                currentManifest = manifest;
+
+                File downloadDir = new File(getExternalFilesDir(null), "downloads");
+                if (!downloadDir.exists()) downloadDir.mkdirs();
+                cleanObsoleteFiles(downloadDir, manifest);
+
+                SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                int installedVersion = prefs.getInt(PREF_MANIFEST_VERSION, -1);
+
+                if (!forceUpdate && installedVersion == manifest.version
+                        && GameDataVerifier.hasRequiredGameData(this)) {
+                    Log.i(TAG, "Data game sudah terpasang dan sesuai manifest versi " + manifest.version);
+                    mainHandler.post(() -> {
+                        if (statusTitle != null) statusTitle.setText("Data sudah terpasang");
+                        if (statusSubtitle != null) statusSubtitle.setText("Memulai permainan...");
+                    });
+                    markReadyAndProceed();
+                    return;
                 }
 
-                if (!GameDataVerifier.hasRequiredGameData(this)) {
-                    throw new IOException("Verifikasi data game belum lengkap.");
-                }
-
-                markExtractedAndProceed();
+                checkFilesAndPrepareQueue(manifest, downloadDir);
             } catch (Exception e) {
-                Log.e(TAG, "Extraction error", e);
-                mainHandler.post(() -> showExtractionError(e.getMessage()));
+                Log.e(TAG, "Update flow error", e);
+                mainHandler.post(() -> showErrorDialog(e.getMessage()));
             } finally {
-                isExtracting = false;
+                isFlowBusy = false;
             }
-        }, "ViceSide-AssetExtractor").start();
+        }, "ViceSide-UpdateFlow").start();
     }
 
-    private List<String> findGameDataZipAssets() {
-        List<String> list = new ArrayList<>();
-        AssetManager am = getAssets();
-        try {
-            String[] files = am.list("game_data");
-            if (files != null && files.length > 0) {
-                for (String f : files) {
-                    if (f.endsWith(".zip")) {
-                        list.add("game_data/" + f);
+    private void checkFilesAndPrepareQueue(ManifestData manifest, File downloadDir) {
+        File targetDir = getExternalFilesDir(null);
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        pendingFilesToDownload.clear();
+
+        for (ManifestFile mf : manifest.files) {
+            String installedSha = prefs.getString(PREF_INSTALLED_SHA_PREFIX + mf.id, "");
+            if (installedSha.equalsIgnoreCase(mf.sha256) && GameDataVerifier.hasRequiredGameData(this)) {
+                Log.i(TAG, "File " + mf.fileName + " sudah terpasang dengan sha256 cocok, melewati unduhan.");
+                continue;
+            }
+
+            File finalFile = new File(downloadDir, mf.fileName);
+            if (finalFile.exists() && finalFile.length() == mf.size) {
+                mainHandler.post(() -> {
+                    if (statusSubtitle != null) statusSubtitle.setText("Memverifikasi berkas lokal: " + mf.fileName);
+                });
+                String hash = calculateSha256(finalFile);
+                if (hash.equalsIgnoreCase(mf.sha256)) {
+                    Log.i(TAG, "Berkas lokal " + mf.fileName + " valid. Mengekstrak...");
+                    try {
+                        extractZip(finalFile, targetDir);
+                        prefs.edit().putString(PREF_INSTALLED_SHA_PREFIX + mf.id, mf.sha256).apply();
+                        continue;
+                    } catch (IOException e) {
+                        Log.e(TAG, "Ekstraksi berkas lokal gagal", e);
                     }
+                } else {
+                    Log.w(TAG, "Berkas lokal " + mf.fileName + " checksum tidak cocok. Dihapus.");
+                    finalFile.delete();
                 }
             }
-        } catch (IOException ignored) {}
 
-        if (list.isEmpty()) {
-            try {
-                String[] rootFiles = am.list("");
-                if (rootFiles != null) {
-                    for (String f : rootFiles) {
-                        if (f.endsWith(".zip")) {
-                            list.add(f);
-                        }
-                    }
-                }
-            } catch (IOException ignored) {}
+            pendingFilesToDownload.add(mf);
         }
-        return list;
+
+        if (pendingFilesToDownload.isEmpty()) {
+            if (GameDataVerifier.hasRequiredGameData(this)) {
+                prefs.edit().putInt(PREF_MANIFEST_VERSION, manifest.version).apply();
+                markReadyAndProceed();
+                return;
+            } else {
+                Log.w(TAG, "Semua file manifest tercatat terpasang tapi GameDataVerifier gagal. Melakukan unduh ulang.");
+                pendingFilesToDownload.addAll(manifest.files);
+            }
+        }
+
+        mainHandler.post(this::downloadNextPendingFile);
     }
 
-    private void extractZipAsset(String assetPath, File destDir, int zipIndex, int totalZips) throws IOException {
-        String fileName = new File(assetPath).getName();
+    private void downloadNextPendingFile() {
+        if (pendingFilesToDownload.isEmpty()) {
+            finalizeInstallation();
+            return;
+        }
+
+        ManifestFile currentFile = pendingFilesToDownload.get(0);
+        File downloadDir = new File(getExternalFilesDir(null), "downloads");
+        if (!downloadDir.exists()) downloadDir.mkdirs();
+
+        String partFileName = currentFile.fileName + ".part";
+        File partFile = new File(downloadDir, partFileName);
+        File tempFile = new File(downloadDir, partFileName + ".temp");
+        File finalFile = new File(downloadDir, currentFile.fileName);
+
+        if (partFile.exists() && !tempFile.exists()) {
+            partFile.renameTo(tempFile);
+        }
+
+        long initialOffset = tempFile.exists() ? tempFile.length() : 0L;
+        int downloadId = Utils.getUniqueId(currentFile.url, downloadDir.getAbsolutePath(), partFileName);
+
+        if (initialOffset > 0) {
+            DownloadModel model = ComponentHolder.getInstance().getDbHelper().find(downloadId);
+            if (model == null) {
+                model = new DownloadModel();
+                model.setId(downloadId);
+                model.setUrl(currentFile.url);
+                model.setDirPath(downloadDir.getAbsolutePath());
+                model.setFileName(partFileName);
+                model.setTotalBytes(currentFile.size);
+                model.setDownloadedBytes(initialOffset);
+                model.setLastModifiedAt(System.currentTimeMillis());
+                ComponentHolder.getInstance().getDbHelper().insert(model);
+            } else {
+                model.setDownloadedBytes(initialOffset);
+                ComponentHolder.getInstance().getDbHelper().update(model);
+            }
+        }
+
+        Log.i(TAG, "[Download] Starting download for " + currentFile.fileName
+                + " at offset: " + initialOffset + " / " + currentFile.size);
+
+        lastSpeedTime = System.currentTimeMillis();
+        lastSpeedBytes = initialOffset;
+        isPaused = false;
+        if (btnCancel != null) btnCancel.setText("Batal / Jeda");
+
         mainHandler.post(() -> {
             if (statusTitle != null) {
-                statusTitle.setText("Mengekstrak " + fileName + " (" + (zipIndex + 1) + "/" + totalZips + ")...");
+                statusTitle.setText("Mengunduh " + currentFile.fileName + "...");
+            }
+            if (progressBar != null) {
+                progressBar.setIndeterminate(false);
+                int pct = (int) ((initialOffset * 100) / (currentFile.size > 0 ? currentFile.size : 1));
+                progressBar.setProgress(pct);
+            }
+        });
+
+        activeDownloadId = PRDownloader.download(currentFile.url, downloadDir.getAbsolutePath(), partFileName)
+                .build()
+                .setOnStartOrResumeListener(new OnStartOrResumeListener() {
+                    @Override
+                    public void onStartOrResume() {
+                        long currentOffset = tempFile.exists() ? tempFile.length() : 0L;
+                        Log.i(TAG, "[Download] Download started/resumed for " + currentFile.fileName
+                                + ", active offset: " + currentOffset);
+                    }
+                })
+                .setOnProgressListener(new OnProgressListener() {
+                    @Override
+                    public void onProgress(Progress progress) {
+                        onProgressUpdate(currentFile, progress.currentBytes, progress.totalBytes);
+                    }
+                })
+                .setOnPauseListener(new OnPauseListener() {
+                    @Override
+                    public void onPause() {
+                        long pausedOffset = tempFile.exists() ? tempFile.length() : 0L;
+                        Log.i(TAG, "[Download] Download paused for " + currentFile.fileName
+                                + " at byte: " + pausedOffset);
+                    }
+                })
+                .setOnCancelListener(new OnCancelListener() {
+                    @Override
+                    public void onCancel() {
+                        Log.i(TAG, "[Download] Download cancelled for " + currentFile.fileName);
+                    }
+                })
+                .start(new OnDownloadListener() {
+                    @Override
+                    public void onDownloadComplete() {
+                        onDownloadFinished(currentFile, partFile, finalFile);
+                    }
+
+                    @Override
+                    public void onError(Error error) {
+                        onDownloadFailed(currentFile, error);
+                    }
+                });
+    }
+
+    private void onProgressUpdate(ManifestFile item, long currentBytes, long totalBytes) {
+        long now = System.currentTimeMillis();
+        if (now - lastSpeedTime >= 800) {
+            long timeDelta = now - lastSpeedTime;
+            long bytesDelta = currentBytes - lastSpeedBytes;
+            if (timeDelta > 0 && bytesDelta >= 0) {
+                double bytesPerSec = (bytesDelta * 1000.0) / timeDelta;
+                if (bytesPerSec >= 1048576) {
+                    lastSpeedText = String.format(Locale.US, "%.1f MB/s", bytesPerSec / 1048576.0);
+                } else {
+                    lastSpeedText = String.format(Locale.US, "%.0f KB/s", bytesPerSec / 1024.0);
+                }
+                if (bytesPerSec > 0 && totalBytes > currentBytes) {
+                    long remainingSec = (long) ((totalBytes - currentBytes) / bytesPerSec);
+                    long mins = remainingSec / 60;
+                    long secs = remainingSec % 60;
+                    lastEtaText = String.format(Locale.US, "%02d:%02d", mins, secs);
+                } else {
+                    lastEtaText = "--:--";
+                }
+            }
+            lastSpeedTime = now;
+            lastSpeedBytes = currentBytes;
+        }
+
+        int percent = (int) ((currentBytes * 100) / (totalBytes > 0 ? totalBytes : 1));
+        mainHandler.post(() -> {
+            if (progressBar != null) {
+                progressBar.setProgress(percent);
+            }
+            if (statusSubtitle != null) {
+                double curMB = currentBytes / 1048576.0;
+                double totMB = totalBytes / 1048576.0;
+                statusSubtitle.setText(String.format(Locale.US,
+                        "%s (%.1f / %.1f MB) • %d%% • %s • ETA: %s",
+                        item.fileName, curMB, totMB, percent, lastSpeedText, lastEtaText));
+            }
+        });
+    }
+
+    private void onDownloadFinished(ManifestFile currentFile, File partFile, File finalFile) {
+        activeDownloadId = -1;
+        new Thread(() -> {
+            try {
+                mainHandler.post(() -> {
+                    if (statusTitle != null) {
+                        statusTitle.setText("Memverifikasi integritas (" + currentFile.fileName + ")...");
+                    }
+                    if (statusSubtitle != null) {
+                        statusSubtitle.setText("Menghitung checksum SHA-256...");
+                    }
+                    if (progressBar != null) {
+                        progressBar.setIndeterminate(true);
+                    }
+                });
+
+                String sha256 = calculateSha256(partFile);
+                if (!sha256.equalsIgnoreCase(currentFile.sha256)) {
+                    Log.e(TAG, "[Download] Checksum mismatch for " + currentFile.fileName
+                            + ": expected " + currentFile.sha256 + ", got " + sha256);
+                    partFile.delete();
+                    throw new IOException("Checksum berkas tidak cocok. Berkas korup atau tidak lengkap.");
+                }
+
+                Log.i(TAG, "[Download] Checksum verified: " + currentFile.fileName);
+                if (finalFile.exists()) finalFile.delete();
+                boolean renamed = partFile.renameTo(finalFile);
+                if (!renamed) {
+                    moveOrCopyFile(partFile, finalFile);
+                }
+
+                extractZip(finalFile, getExternalFilesDir(null));
+
+                SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                prefs.edit().putString(PREF_INSTALLED_SHA_PREFIX + currentFile.id, currentFile.sha256).apply();
+
+                if (!pendingFilesToDownload.isEmpty()) {
+                    pendingFilesToDownload.remove(0);
+                }
+
+                if (pendingFilesToDownload.isEmpty()) {
+                    finalizeInstallation();
+                } else {
+                    mainHandler.post(this::downloadNextPendingFile);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error handling completed download", e);
+                mainHandler.post(() -> showErrorDialog("Gagal memproses unduhan:\\n" + e.getMessage()));
+            }
+        }, "ViceSide-VerifyExtract").start();
+    }
+
+    private void onDownloadFailed(ManifestFile currentFile, Error error) {
+        activeDownloadId = -1;
+        Log.e(TAG, "[Download] Error downloading " + currentFile.fileName
+                + ": " + (error != null ? error.getServerErrorMessage() : "unknown"));
+        mainHandler.post(() -> {
+            String msg = "Gagal mengunduh " + currentFile.fileName + ".";
+            if (error != null && error.getResponseCode() != 0) {
+                msg += " (HTTP " + error.getResponseCode() + ")";
+            }
+            showErrorDialog(msg + "\\nPeriksa koneksi internet Anda lalu coba lagi.");
+        });
+    }
+
+    private void finalizeInstallation() {
+        if (GameDataVerifier.hasRequiredGameData(this)) {
+            if (currentManifest != null) {
+                getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                        .edit()
+                        .putInt(PREF_MANIFEST_VERSION, currentManifest.version)
+                        .apply();
+            }
+            Log.i(TAG, "Game data verification passed! Launching MainActivity.");
+            markReadyAndProceed();
+        } else {
+            Log.e(TAG, "Game data verification failed after extraction.");
+            mainHandler.post(() -> showErrorDialog("Verifikasi data game tidak lengkap. Pastikan seluruh berkas terpasang."));
+        }
+    }
+
+    private void onCancelOrPauseClicked() {
+        if (activeDownloadId != -1) {
+            if (!isPaused) {
+                PRDownloader.pause(activeDownloadId);
+                isPaused = true;
+                if (btnCancel != null) btnCancel.setText("Lanjutkan");
+                if (statusSubtitle != null) {
+                    statusSubtitle.setText("Unduhan dijeda. Posisi byte tersimpan.");
+                }
+            } else {
+                PRDownloader.resume(activeDownloadId);
+                isPaused = false;
+                if (btnCancel != null) btnCancel.setText("Batal / Jeda");
+                if (statusSubtitle != null) {
+                    statusSubtitle.setText("Melanjutkan unduhan...");
+                }
+            }
+        } else {
+            finish();
+        }
+    }
+
+    private void onCopyPathClicked() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            ClipData clip = ClipData.newPlainText("Jalur Impor Data Game", MANUAL_IMPORT_PATH);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(this, "Jalur disalin: " + MANUAL_IMPORT_PATH, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void onManualImportClicked() {
+        if (activeDownloadId != -1) {
+            PRDownloader.pause(activeDownloadId);
+            isPaused = true;
+            if (btnCancel != null) btnCancel.setText("Lanjutkan");
+        }
+
+        new Thread(() -> {
+            File importDir = new File(MANUAL_IMPORT_PATH);
+            if (!importDir.exists()) {
+                importDir.mkdirs();
+                mainHandler.post(() -> Toast.makeText(this,
+                        "Folder belum berisi file. Salin CRMP.zip ke " + MANUAL_IMPORT_PATH,
+                        Toast.LENGTH_LONG).show());
+                return;
+            }
+
+            mainHandler.post(() -> {
+                if (statusTitle != null) statusTitle.setText("Memeriksa folder impor manual...");
+                if (statusSubtitle != null) statusSubtitle.setText("Menelusuri " + MANUAL_IMPORT_PATH);
+                if (progressBar != null) progressBar.setIndeterminate(true);
+            });
+
+            if (currentManifest == null) {
+                String manifestJson = fetchManifestJson();
+                if (manifestJson != null) currentManifest = parseManifest(manifestJson);
+            }
+
+            if (currentManifest == null) {
+                mainHandler.post(() -> showErrorDialog("Tidak dapat memuat manifest data untuk verifikasi impor."));
+                return;
+            }
+
+            File targetDir = getExternalFilesDir(null);
+            File downloadDir = new File(getExternalFilesDir(null), "downloads");
+            if (!downloadDir.exists()) downloadDir.mkdirs();
+
+            int importedCount = 0;
+            List<String> mismatchList = new ArrayList<>();
+            SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+            for (ManifestFile mf : currentManifest.files) {
+                File candidateFile = new File(importDir, mf.fileName);
+                if (!candidateFile.exists()) {
+                    candidateFile = new File(importDir, mf.id + ".zip");
+                }
+
+                if (candidateFile.exists()) {
+                    mainHandler.post(() -> {
+                        if (statusSubtitle != null) {
+                            statusSubtitle.setText("Memverifikasi SHA-256: " + candidateFile.getName());
+                        }
+                    });
+
+                    if (candidateFile.length() != mf.size) {
+                        mismatchList.add(candidateFile.getName() + " (ukuran tidak cocok)");
+                        continue;
+                    }
+
+                    String sha = calculateSha256(candidateFile);
+                    if (sha.equalsIgnoreCase(mf.sha256)) {
+                        mainHandler.post(() -> {
+                            if (statusSubtitle != null) {
+                                statusSubtitle.setText("Mengimpor dan mengekstrak: " + candidateFile.getName());
+                            }
+                        });
+                        File destFile = new File(downloadDir, mf.fileName);
+                        moveOrCopyFile(candidateFile, destFile);
+                        try {
+                            extractZip(destFile, targetDir);
+                            prefs.edit().putString(PREF_INSTALLED_SHA_PREFIX + mf.id, mf.sha256).apply();
+                            importedCount++;
+                        } catch (IOException e) {
+                            Log.e(TAG, "Ekstraksi berkas impor gagal", e);
+                        }
+                    } else {
+                        mismatchList.add(candidateFile.getName() + " (checksum berbeda)");
+                    }
+                }
+            }
+
+            File importTexdb = new File(importDir, "texdb");
+            File importModels = new File(importDir, "models");
+            if (importTexdb.exists() && importModels.exists()) {
+                mainHandler.post(() -> {
+                    if (statusSubtitle != null) statusSubtitle.setText("Mengimpor struktur folder terekstrak...");
+                });
+                copyDirectory(importDir, targetDir);
+            }
+
+            final int finalImported = importedCount;
+            mainHandler.post(() -> {
+                if (GameDataVerifier.hasRequiredGameData(this)) {
+                    prefs.edit().putInt(PREF_MANIFEST_VERSION, currentManifest.version).apply();
+                    Toast.makeText(this, "Impor manual sukses! Masuk ke permainan...", Toast.LENGTH_SHORT).show();
+                    markReadyAndProceed();
+                } else {
+                    String msg = "Impor selesai: " + finalImported + " berkas berhasil.";
+                    if (!mismatchList.isEmpty()) {
+                        msg += "\\nBerkas tidak valid/diubah: " + TextUtils.join(", ", mismatchList) + ". Berkas resmi akan diunduh.";
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                    checkFilesAndPrepareQueue(currentManifest, downloadDir);
+                }
+            });
+        }, "ViceSide-ManualImport").start();
+    }
+
+    private void extractZip(File zipFile, File destDir) throws IOException {
+        mainHandler.post(() -> {
+            if (statusTitle != null) {
+                statusTitle.setText("Mengekstrak " + zipFile.getName() + "...");
+            }
+            if (progressBar != null) {
+                progressBar.setIndeterminate(false);
+                progressBar.setProgress(0);
             }
         });
 
         byte[] buffer = new byte[65536];
-        try (InputStream is = getAssets().open(assetPath);
+        try (InputStream is = new FileInputStream(zipFile);
              BufferedInputStream bis = new BufferedInputStream(is, 65536);
              ZipInputStream zis = new ZipInputStream(bis)) {
 
@@ -368,19 +1053,155 @@ public class EntryActivity extends SampActivity {
         }
     }
 
-    private void markExtractedAndProceed() {
-        getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(PREF_EXTRACTED, true)
-                .apply();
+    private String fetchManifestJson() {
+        String json = downloadStringWithTimeout(PRIMARY_MANIFEST_URL, 15000);
+        if (json != null && !json.trim().isEmpty()) {
+            return json;
+        }
+        Log.w(TAG, "Primary manifest URL failed, trying fallback URL: " + FALLBACK_MANIFEST_URL);
+        return downloadStringWithTimeout(FALLBACK_MANIFEST_URL, 15000);
+    }
 
+    private String downloadStringWithTimeout(String urlString, int timeout) {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(urlString);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(timeout);
+            conn.setReadTimeout(timeout);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "ViceSideClient/1.0");
+            int code = conn.getResponseCode();
+            if (code >= 200 && code < 300) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append('\\n');
+                    }
+                    return sb.toString();
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to download string from " + urlString, e);
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return null;
+    }
+
+    private ManifestData parseManifest(String jsonString) {
+        try {
+            JSONObject obj = new JSONObject(jsonString);
+            int version = obj.getInt("version");
+            String title = obj.optString("title", "Vice Side Data");
+            ManifestData data = new ManifestData(version, title);
+            JSONArray arr = obj.getJSONArray("files");
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject fObj = arr.getJSONObject(i);
+                data.files.add(new ManifestFile(
+                        fObj.getString("id"),
+                        fObj.getString("url"),
+                        fObj.getLong("size"),
+                        fObj.getString("sha256"),
+                        fObj.optString("extract_to", ".")
+                ));
+            }
+            return data;
+        } catch (Exception e) {
+            Log.e(TAG, "Manifest parsing error", e);
+            return null;
+        }
+    }
+
+    private void cleanObsoleteFiles(File downloadDir, ManifestData manifest) {
+        if (!downloadDir.exists() || manifest == null) return;
+        Set<String> validNames = new HashSet<>();
+        for (ManifestFile mf : manifest.files) {
+            validNames.add(mf.fileName);
+            validNames.add(mf.fileName + ".part");
+            validNames.add(mf.fileName + ".part.temp");
+        }
+        File[] files = downloadDir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (!validNames.contains(f.getName())) {
+                    Log.i(TAG, "Deleting obsolete download file: " + f.getName());
+                    f.delete();
+                }
+            }
+        }
+    }
+
+    public static String calculateSha256(File file) {
+        if (file == null || !file.exists() || !file.isFile()) return "";
+        try (InputStream fis = new BufferedInputStream(new FileInputStream(file), 65536)) {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[65536];
+            int read;
+            while ((read = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+            byte[] hash = digest.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format(Locale.US, "%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating SHA-256 for " + file.getAbsolutePath(), e);
+            return "";
+        }
+    }
+
+    public static boolean moveOrCopyFile(File source, File target) {
+        if (source.renameTo(target)) {
+            return true;
+        }
+        byte[] buffer = new byte[65536];
+        try (InputStream in = new FileInputStream(source);
+             FileOutputStream out = new FileOutputStream(target)) {
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            out.flush();
+        } catch (IOException e) {
+            if (target.exists()) target.delete();
+            return false;
+        }
+        if (target.length() == source.length()) {
+            source.delete();
+            return true;
+        } else {
+            if (target.exists()) target.delete();
+            return false;
+        }
+    }
+
+    private boolean copyDirectory(File source, File target) {
+        if (source.isDirectory()) {
+            if (!target.exists()) target.mkdirs();
+            File[] children = source.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    copyDirectory(child, new File(target, child.getName()));
+                }
+            }
+            return true;
+        } else {
+            return moveOrCopyFile(source, target);
+        }
+    }
+
+    private void markReadyAndProceed() {
         ConfigValidator.validateConfigFiles(this);
         mainHandler.post(this::launchMainActivity);
     }
 
-    private void showExtractionError(String errorMsg) {
+    private void showErrorDialog(String errorMsg) {
         if (statusTitle != null) {
-            statusTitle.setText("Gagal mengekstrak data game.");
+            statusTitle.setText("Kendala Pembaruan Data Game");
         }
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_update_prompt, null, false);
         TextView titleView = dialogView.findViewById(R.id.update_prompt_title);
@@ -388,11 +1209,10 @@ public class EntryActivity extends SampActivity {
         TextView primaryButton = dialogView.findViewById(R.id.update_prompt_primary);
         TextView secondaryButton = dialogView.findViewById(R.id.update_prompt_secondary);
 
-        if (titleView != null) titleView.setText("Ekstraksi Gagal");
+        if (titleView != null) titleView.setText("Pembaruan Data Terkendala");
         if (bodyView != null) {
-            bodyView.setText("Terjadi kendala saat mengekstrak data game lokal:\\n"
-                    + (errorMsg != null ? errorMsg : "Sisa ruang penyimpanan tidak cukup.")
-                    + "\\nPastikan tersedia ruang kosong minimal 4 GB.");
+            bodyView.setText((errorMsg != null ? errorMsg : "Gagal memproses berkas data game.")
+                    + "\\n\\nPastikan perangkat terhubung ke internet dan memiliki ruang kosong minimal 3 GB, atau gunakan tombol 'Impor dari Folder'.");
         }
         if (primaryButton != null) {
             primaryButton.setText("Coba Lagi");
@@ -415,8 +1235,8 @@ public class EntryActivity extends SampActivity {
         if (primaryButton != null) {
             primaryButton.setOnClickListener(v -> {
                 dialog.dismiss();
-                setupExtractionUi();
-                startDataExtraction();
+                setupUi();
+                startUpdateFlow();
             });
         }
         if (secondaryButton != null) {
@@ -471,7 +1291,7 @@ public class EntryActivity extends SampActivity {
 }
 """
     entry_path.write_text(new_content, encoding="utf-8")
-    print("[*] Replaced EntryActivity.java with first-run asset extractor & orientation lock")
+    print("[*] Replaced EntryActivity.java with client-side downloader & manual importer")
 
 def patch_app_gradle(root: Path) -> None:
     app_gradle = root / "app/build.gradle"
@@ -487,21 +1307,13 @@ def patch_app_gradle(root: Path) -> None:
         app_text
     )
 
-    if "noCompress" not in app_text:
+    # Strip any bundled game-data sourceSets
+    app_text = re.sub(r"\s*assets\.srcDirs\s*\+=\s*\['\.\./game-data'\]", "", app_text)
+
+    if "signingConfigs {" not in app_text:
         insert_pos = app_text.find("buildTypes {")
         if insert_pos != -1:
-            resource_block = (
-                "    androidResources {\n"
-                "        noCompress += ['zip']\n"
-                "    }\n"
-                "    aaptOptions {\n"
-                "        noCompress 'zip'\n"
-                "    }\n\n"
-                "    sourceSets {\n"
-                "        main {\n"
-                "            assets.srcDirs += ['../game-data']\n"
-                "        }\n"
-                "    }\n\n"
+            signing_block = (
                 "    signingConfigs {\n"
                 "        release {\n"
                 "            storeFile file(System.getenv('KEYSTORE_PATH') ?: (project.findProperty('KEYSTORE_FILE') ?: (file('release.keystore').exists() ? 'release.keystore' : '../release.keystore')))\n"
@@ -511,7 +1323,7 @@ def patch_app_gradle(root: Path) -> None:
                 "        }\n"
                 "    }\n\n"
             )
-            app_text = app_text[:insert_pos] + resource_block + app_text[insert_pos:]
+            app_text = app_text[:insert_pos] + signing_block + app_text[insert_pos:]
 
     app_text = re.sub(
         r"//signingConfig\s+signingConfigs\.release",
@@ -519,7 +1331,7 @@ def patch_app_gradle(root: Path) -> None:
         app_text
     )
     app_gradle.write_text(app_text, encoding="utf-8")
-    print("[*] Configured app/build.gradle (signingConfigs.release, noCompress, game-data sourceSet, dynamic versionCode)")
+    print("[*] Configured app/build.gradle (signingConfigs.release, dynamic versionCode, no bundled game data)")
 
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "client").resolve()
@@ -535,10 +1347,11 @@ def main() -> None:
     patch_root_gradle(root)
     patch_gradle_properties(root)
     patch_samp_orientation(root)
+    patch_splash_layout(root)
     patch_entry_activity(root)
     patch_app_gradle(root)
 
-    print("[SUCCESS] All single-server, CEF, and asset extraction patches applied successfully.")
+    print("[SUCCESS] All single-server, CEF, client-side downloader, and importer patches applied successfully.")
 
 if __name__ == "__main__":
     main()

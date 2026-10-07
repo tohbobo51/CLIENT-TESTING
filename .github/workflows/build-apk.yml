@@ -13,13 +13,17 @@ permissions:
 
 jobs:
   build:
-    name: Build Signed All-in-One Release APK
+    name: Build Signed Release APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Validate Game Data Manifest
+        run: |
+          python3 scripts/validate_manifest.py data-manifest.json
 
       - name: Cache Client Source Zip
         id: cache-client-source
@@ -38,37 +42,6 @@ jobs:
           rm -rf client
           unzip -q src.zip -d client
 
-      - name: Cache Game Data Zips
-        id: cache-game-data
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/samp-game-data
-          key: game-data-v1-e06ce14e8e8ebc4bcb246aa57d9c2efdbcc99b728975fe8de962e99ad7e9c218-4854d4176df5a8da3da17bf4aaf58e374c395ab0e1cb68be0a83ab0f6889c7ec
-
-      - name: Fetch and Verify Bundled Game Data
-        run: |
-          mkdir -p ~/.cache/samp-game-data
-          cd ~/.cache/samp-game-data
-
-          if [ ! -f gtasa.2.10.cache.zip ]; then
-            echo "[*] Downloading gtasa.2.10.cache.zip..."
-            curl -fL -o gtasa.2.10.cache.zip https://github.com/tohbobo51/samp-game-data/releases/download/v1.0/gtasa.2.10.cache.zip
-          fi
-
-          if [ ! -f CRMP.zip ]; then
-            echo "[*] Downloading CRMP.zip..."
-            curl -fL -o CRMP.zip https://github.com/tohbobo51/samp-game-data/releases/download/v1.0/CRMP.zip
-          fi
-
-          echo "e06ce14e8e8ebc4bcb246aa57d9c2efdbcc99b728975fe8de962e99ad7e9c218  gtasa.2.10.cache.zip" | sha256sum -c -
-          echo "4854d4176df5a8da3da17bf4aaf58e374c395ab0e1cb68be0a83ab0f6889c7ec  CRMP.zip" | sha256sum -c -
-
-          cd "$GITHUB_WORKSPACE"
-          mkdir -p client/game-data/game_data
-          cp ~/.cache/samp-game-data/gtasa.2.10.cache.zip client/game-data/game_data/
-          cp ~/.cache/samp-game-data/CRMP.zip client/game-data/game_data/
-          echo "[*] Game data assets placed into client/game-data/game_data/"
-
       - name: Apply Base CEF and Server Configuration
         run: |
           python3 scripts/prepare_client.py client
@@ -81,7 +54,7 @@ jobs:
             cp -r res/drawable-nodpi/* client/app/src/main/res/drawable-nodpi/
           fi
 
-      - name: Apply Single-Server Lock, Asset Extractor, and Orientation Patches
+      - name: Apply Single-Server Lock, Downloader, and Orientation Patches
         run: |
           python3 scripts/patch_single_server.py client
 
@@ -151,9 +124,12 @@ jobs:
           unzip -l "$APK_PATH" | grep "lib/armeabi-v7a/libGTASA.so"
           unzip -l "$APK_PATH" | grep "lib/armeabi-v7a/libomp_component_"
 
-          echo "=== 3. Bundled Game Data Asset Verification ==="
-          unzip -l "$APK_PATH" | grep "assets/game_data/gtasa.2.10.cache.zip"
-          unzip -l "$APK_PATH" | grep "assets/game_data/CRMP.zip"
+          echo "=== 3. Game Data Assets Check (Must NOT be bundled) ==="
+          if unzip -l "$APK_PATH" | grep -q "assets/game_data/"; then
+            echo "[-] ERROR: Game data assets found inside APK! APK must not bundle game data."
+            exit 1
+          fi
+          echo "[+] Confirmed: No assets/game_data/ bundled in APK."
 
           echo "=== 4. Signature Verification ==="
           $APKSIGNER verify --verbose "$APK_PATH"
@@ -162,51 +138,40 @@ jobs:
           ls -lh "$APK_PATH"
           APK_SIZE=$(stat -c%s "$APK_PATH")
           echo "APK_SIZE=$APK_SIZE" >> $GITHUB_ENV
+          MAX_APK_SIZE=209715200 # 200 MB limit
+          if [ "$APK_SIZE" -ge "$MAX_APK_SIZE" ]; then
+            echo "[-] ERROR: APK size ($APK_SIZE bytes) exceeds 200 MB limit!"
+            exit 1
+          fi
+          echo "[+] Confirmed: APK size ($APK_SIZE bytes) is below 200 MB target."
           sha256sum "$APK_PATH" > "${APK_PATH}.sha256"
           cat "${APK_PATH}.sha256"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: viceside-all-in-one-apk
+          name: viceside-release-apk
           path: |
             client/app/build/outputs/apk/release/*.apk
             client/app/build/outputs/apk/release/*.sha256
           if-no-files-found: error
 
-      - name: Evaluate Release Upload Strategy
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          MAX_GH_ASSET_SIZE=2147483648 # 2 GiB limit
-          if [ "$APK_SIZE" -le "$MAX_GH_ASSET_SIZE" ]; then
-            echo "ALLOW_GH_RELEASE=true" >> $GITHUB_ENV
-            echo "[+] APK size ($APK_SIZE bytes) is within 2 GiB GitHub Release limit."
-          else
-            echo "ALLOW_GH_RELEASE=false" >> $GITHUB_ENV
-            echo "[!] APK size ($APK_SIZE bytes) exceeds 2 GiB limit. Offloading..."
-            if [ -n "${{ secrets.RELEASE_UPLOAD_URL }}" ]; then
-              echo "[*] Uploading APK to external host..."
-              curl -f -X POST -F "file=@$APK_PATH" "${{ secrets.RELEASE_UPLOAD_URL }}"
-            else
-              echo "[!] Warning: RELEASE_UPLOAD_URL secret is not set."
-            fi
-          fi
-
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') && env.ALLOW_GH_RELEASE == 'true'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          name: "Vice Side Mobile All-in-One Client (${{ github.ref_name }})"
+          name: "Vice Side Mobile Client (${{ github.ref_name }})"
           draft: false
           prerelease: false
           files: |
             ${{ env.APK_PATH }}
             ${{ env.APK_PATH }}.sha256
           body: |
-            ### Vice Side Roleplay — All-in-One Android Client
+            ### Vice Side Roleplay — Android Client
 
             - **Versi:** `${{ github.ref_name }}`
             - **Server:** `142.132.203.47:10125` (Terkunci)
             - **Arsitektur:** `armeabi-v7a` (32-bit)
             - **Otentikasi UCP:** Google Auth melalui in-game CEF browser terintegrasi
-            - **Instalasi:** Seluruh data GTA SA dan CRMP telah dibundel di dalam APK. Ekstraksi otomatis berjalan saat pertama kali aplikasi dibuka tanpa perlu mengunduh file tambahan dari internet.
+            - **Ukuran APK:** Ramping (< 200 MB)
+            - **Data Game:** Diunduh langsung melalui client saat pertama kali dibuka dengan dukungan resume (HTTP Range), verifikasi integritas SHA-256 per berkas, serta opsi impor manual dari `/storage/emulated/0/Documents/SampMobile/`.
