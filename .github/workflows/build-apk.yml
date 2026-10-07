@@ -64,10 +64,12 @@ jobs:
           echo "4854d4176df5a8da3da17bf4aaf58e374c395ab0e1cb68be0a83ab0f6889c7ec  CRMP.zip" | sha256sum -c -
 
           cd "$GITHUB_WORKSPACE"
-          mkdir -p client/game-data/game_data
+          mkdir -p client/app/src/main/assets/game_data client/game-data/game_data client/app/game-data/game_data
+          cp ~/.cache/samp-game-data/gtasa.2.10.cache.zip client/app/src/main/assets/game_data/
+          cp ~/.cache/samp-game-data/CRMP.zip client/app/src/main/assets/game_data/
           cp ~/.cache/samp-game-data/gtasa.2.10.cache.zip client/game-data/game_data/
           cp ~/.cache/samp-game-data/CRMP.zip client/game-data/game_data/
-          echo "[*] Game data assets placed into client/game-data/game_data/"
+          echo "[*] Game data assets placed into client/app/src/main/assets/game_data/"
 
       - name: Apply Base CEF and Server Configuration
         run: |
