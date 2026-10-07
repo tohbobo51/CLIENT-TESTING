@@ -494,7 +494,7 @@ def patch_app_gradle(root: Path) -> None:
                 "    }\n\n"
                 "    signingConfigs {\n"
                 "        release {\n"
-                "            storeFile file(System.getenv('KEYSTORE_PATH') ?: (project.findProperty('KEYSTORE_FILE') ?: 'release.keystore'))\n"
+                "            storeFile file(System.getenv('KEYSTORE_PATH') ?: (project.findProperty('KEYSTORE_FILE') ?: (file('release.keystore').exists() ? 'release.keystore' : '../release.keystore')))\n"
                 "            storePassword System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: '')\n"
                 "            keyAlias System.getenv('KEY_ALIAS') ?: (project.findProperty('KEY_ALIAS') ?: '')\n"
                 "            keyPassword System.getenv('KEY_PASSWORD') ?: (System.getenv('KEYSTORE_PASSWORD') ?: (project.findProperty('KEY_PASSWORD') ?: (project.findProperty('KEYSTORE_PASSWORD') ?: '')))\n"

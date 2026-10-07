@@ -101,16 +101,17 @@ jobs:
 
       - name: Setup Signing Keystore and Environment
         run: |
-          cd client
+          mkdir -p client/app
+          KEYSTORE_FILE_PATH="$GITHUB_WORKSPACE/client/app/release.keystore"
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "[*] Decoding release keystore from secrets..."
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$KEYSTORE_FILE_PATH"
             echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD || secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
           else
             echo "[*] Generating fallback release keystore..."
-            keytool -genkeypair -v -keystore release.keystore -alias viceside \
+            keytool -genkeypair -v -keystore "$KEYSTORE_FILE_PATH" -alias viceside \
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass vicesidepass -keypass vicesidepass \
               -dname "CN=ViceSide, OU=Client, O=Roleplay, L=City, S=State, C=ID"
@@ -118,7 +119,7 @@ jobs:
             echo "KEY_ALIAS=viceside" >> $GITHUB_ENV
             echo "KEY_PASSWORD=vicesidepass" >> $GITHUB_ENV
           fi
-          echo "KEYSTORE_PATH=release.keystore" >> $GITHUB_ENV
+          echo "KEYSTORE_PATH=$KEYSTORE_FILE_PATH" >> $GITHUB_ENV
           echo "BUILD_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
 
       - name: Build Signed Release APK
