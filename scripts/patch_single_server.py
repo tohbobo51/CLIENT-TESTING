@@ -489,7 +489,7 @@ def patch_app_gradle(root: Path) -> None:
                 "    }\n\n"
                 "    sourceSets {\n"
                 "        main {\n"
-                "            assets.srcDirs += ['game-data']\n"
+                "            assets.srcDirs += ['game-data', '../game-data']\n"
                 "        }\n"
                 "    }\n\n"
                 "    signingConfigs {\n"
